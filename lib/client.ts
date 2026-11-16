@@ -1,0 +1,13 @@
+export async function api<T>(input: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers);
+  if (init?.body && !(init.body instanceof FormData) && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+  const res = await fetch(input, { ...init, headers });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const message = typeof data?.error === "string" ? data.error : `Request failed (${res.status})`;
+    throw new Error(message);
+  }
+  return data as T;
+}

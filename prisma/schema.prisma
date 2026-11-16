@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  SALES_REP
+}
+
+enum LeadStage {
+  NEW
+  CONTACTED
+  QUALIFIED
+  PROPOSAL_SENT
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum ActivityType {
+  CALL
+  EMAIL
+  MEETING
+  NOTE
+  STAGE_CHANGE
+}
+
+enum LeadCategory {
+  HOT
+  WARM
+  COLD
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  role         Role
+  createdAt    DateTime   @default(now())
+  leads        Lead[]     @relation("LeadOwner")
+  activities   Activity[]
+  tasks        Task[]
+}
+
+model Company {
+  id        String    @id @default(cuid())
+  name      String
+  website   String?
+  industry  String?
+  city      String?
+  createdAt DateTime  @default(now())
+  contacts  Contact[]
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  city      String?
+  source    String?
+  notes     String?  @db.Text
+  tags      String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  leads     Lead[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([companyId])
+}
+
+model Lead {
+  id                String        @id @default(cuid())
+  title             String
+  contactId         String
+  contact           Contact       @relation(fields: [contactId], references: [id], onDelete: Restrict)
+  dealValue         Int
+  stage             LeadStage     @default(NEW)
+  ownerId           String
+  owner             User          @relation("LeadOwner", fields: [ownerId], references: [id])
+  expectedCloseDate DateTime?
+  source            String?
+  lostReason        String?
+  aiScore           Int?
+  aiCategory        LeadCategory?
+  aiReasons         String[]
+  aiScoredAt        DateTime?
+  scoreStale        Boolean       @default(true)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  activities        Activity[]
+  tasks             Task[]
+
+  @@index([ownerId])
+  @@index([stage])
+  @@index([contactId])
+}
+
+model Activity {
+  id          String       @id @default(cuid())
+  leadId      String
+  lead        Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  type        ActivityType
+  description String       @db.Text
+  createdById String
+  createdBy   User         @relation(fields: [createdById], references: [id])
+  createdAt   DateTime     @default(now())
+
+  @@index([leadId])
+}
+
+model Task {
+  id             String   @id @default(cuid())
+  title          String
+  dueDate        DateTime
+  leadId         String?
+  lead           Lead?    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  assignedUserId String
+  assignedUser   User     @relation(fields: [assignedUserId], references: [id])
+  completed      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@index([assignedUserId])
+  @@index([leadId])
+  @@index([dueDate])
+}

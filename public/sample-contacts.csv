@@ -1,0 +1,5 @@
+Name,Email,Phone,Company,City,Source,Notes,Tags
+Aarav Sharma,aarav.sharma@tcs.com,+919800000000,Tata Consultancy Services,Mumbai,Website,Duplicate of an existing contact,Priority
+Lakshmi Iyer,lakshmi.iyer@example.com,+919811112222,Freshworks,Hyderabad,LinkedIn,Evaluating a CRM for the Hyderabad sales pod,Enterprise|Follow-up
+Bad Email,not-an-email,+919822223333,Zoho,Bangalore,Referral,This row should fail validation,
+,missing.name@example.com,+919833334444,Zoho,Pune,Website,Missing name should fail,SMB
